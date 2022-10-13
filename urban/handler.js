@@ -4,11 +4,12 @@ dotenv.config()
 import _ from 'lodash';
 
 import path from 'path';
-import { AWS, Storage } from './mock.js';
 import VError from 'verror';
 import mime from 'mime-types';
 import { v1 as uuid } from 'uuid';
+
 import S3Service from './modules/aws/s3/s3.service.js';
+import StorageService from './modules/gcs/storage/storage.service.js';
 
 const TEMP_DIRECTORY = '../../../../../tmp/';
 const UPLOAD_DIRECTORY = '../../../../../tmp/rich-media-markup-uploads';
@@ -16,9 +17,6 @@ const EXTRACT_DIRECTORY = '../../../../../tmp/rich-media-markup-extracted';
 const ONE_HUNDRED_MEGABYTES = 100 * 1024 * 1024;
 
 const __dirname = '';
-
-const storage = new Storage();
-const GCS_CREATIVE_BUCKET_NAME = 'gcs.creatives.bucketName';
 
 async function handler(req, res, next) {
   const { flags } = res.locals;
@@ -334,8 +332,9 @@ const uploadDirectoryToS3 = async ({
 
     try {
       if (flags.en_2127_upload_into_s3_and_gcs) {
-        if (configs.get('creatives.uploadToGCS')) {
-          await storage.bucket(GCS_CREATIVE_BUCKET_NAME).upload(filePath, {
+        if (process.env.GCS_UPLOAD_TO_CREATIVES) {
+          await StorageService.uploadObjectToCreativesBucket({
+            filePath,
             destination: Key,
           });
         }
