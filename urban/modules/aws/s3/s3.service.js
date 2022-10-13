@@ -1,5 +1,5 @@
-import { AWS } from "../../../mock";
-import S3Constants from "./s3.constants";
+import { AWS } from "../../../mock.js";
+import S3Constants from "./s3.constants.js";
 
 const S3_KEY = process.env.S3_KEY;
 const S3_SECRET = process.env.S3_SECRET;
