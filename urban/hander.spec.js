@@ -3,11 +3,10 @@ import _ from 'lodash';
 import sinon from 'sinon';
 
 import {
-  validateConversioZipFile,
-  validateGWDZipFile,
   processGWDClickthroughUrls,
   processConversioClickthroughUrls,
 } from './handler.js';
+import ValidatorService from './modules/validator/validator.service.js';
 
 describe('campaign creatives zip file upload validators', () => {
   describe('validateGWDZipFile', () => {
@@ -17,7 +16,7 @@ describe('campaign creatives zip file upload validators', () => {
         .stub()
         .returns(`<meta name="generator" content="Google Web Designer"/>`);
 
-      await validateGWDZipFile({
+      await ValidatorService.validateGWDZipFile({
         fileBaseName: 'testZipFile',
         directoryToUpload: 'testUploadDirectory',
         _getFiles,
@@ -35,7 +34,7 @@ describe('campaign creatives zip file upload validators', () => {
                 <image src="assets/test-image.png"/>
             `);
 
-      const isValid = await validateGWDZipFile({
+      const isValid = await ValidatorService.validateGWDZipFile({
         fileBaseName: 'gwd-test-a',
         directoryToUpload: 'testUploadDirectory',
         _getFiles,
@@ -52,7 +51,7 @@ describe('campaign creatives zip file upload validators', () => {
                 <image src="assets/test-image.png"/>
             `);
 
-      const isValid = await validateGWDZipFile({
+      const isValid = await ValidatorService.validateGWDZipFile({
         fileBaseName: 'gwd-test-a (1)',
         directoryToUpload: 'testUploadDirectory',
         _getFiles,
@@ -70,7 +69,7 @@ describe('campaign creatives zip file upload validators', () => {
       let isValid;
 
       try {
-        isValid = await validateGWDZipFile({
+        isValid = await ValidatorService.validateGWDZipFile({
           fileBaseName: 'gwd-test-a',
           directoryToUpload: 'testUploadDirectory',
           _getFiles,
@@ -89,7 +88,7 @@ describe('campaign creatives zip file upload validators', () => {
       let isValid;
 
       try {
-        isValid = await validateGWDZipFile({
+        isValid = await ValidatorService.validateGWDZipFile({
           fileBaseName: 'gwd-test-a',
           directoryToUpload: 'testUploadDirectory',
           _getFiles,
@@ -108,7 +107,7 @@ describe('campaign creatives zip file upload validators', () => {
       let isValid;
 
       try {
-        isValid = await validateGWDZipFile({
+        isValid = await ValidatorService.validateGWDZipFile({
           fileBaseName: 'gwd-test-a',
           directoryToUpload: 'testUploadDirectory',
           _getFiles,
@@ -132,7 +131,7 @@ describe('campaign creatives zip file upload validators', () => {
       let isValid;
 
       try {
-        isValid = await validateGWDZipFile({
+        isValid = await ValidatorService.validateGWDZipFile({
           fileBaseName: 'gwd-test-a',
           directoryToUpload: 'testUploadDirectory',
           _getFiles,
@@ -154,7 +153,7 @@ describe('campaign creatives zip file upload validators', () => {
       let isValid;
 
       try {
-        isValid = await validateGWDZipFile({
+        isValid = await ValidatorService.validateGWDZipFile({
           fileBaseName: 'gwd-test-a (1)',
           directoryToUpload: 'testUploadDirectory',
           _getFiles,
@@ -177,7 +176,7 @@ describe('campaign creatives zip file upload validators', () => {
         .stub()
         .returns(`<meta name="generator" content="Google Web Designer"/>`);
 
-      await validateConversioZipFile({
+      await ValidatorService.validateConversioZipFile({
         fileBaseName: 'testZipFile',
         directoryToUpload: 'testUploadDirectory',
         _getFiles,
@@ -196,7 +195,7 @@ describe('campaign creatives zip file upload validators', () => {
                 <image src="images/test-image.png"/>
             `);
 
-      const isValid = await validateConversioZipFile({
+      const isValid = await ValidatorService.validateConversioZipFile({
         fileBaseName: 'conversio-test-a',
         directoryToUpload: 'testUploadDirectory',
         _getFiles,
@@ -214,7 +213,7 @@ describe('campaign creatives zip file upload validators', () => {
                 <image src="images/test-image.png"/>
             `);
 
-      const isValid = await validateConversioZipFile({
+      const isValid = await ValidatorService.validateConversioZipFile({
         fileBaseName: 'conversio-test-a (1)',
         directoryToUpload: 'testUploadDirectory',
         _getFiles,
@@ -230,7 +229,7 @@ describe('campaign creatives zip file upload validators', () => {
       let isValid;
 
       try {
-        isValid = await validateConversioZipFile({
+        isValid = await ValidatorService.validateConversioZipFile({
           fileBaseName: 'conversio-test-a',
           directoryToUpload: 'testUploadDirectory',
           _getFiles,
@@ -249,7 +248,7 @@ describe('campaign creatives zip file upload validators', () => {
       let isValid;
 
       try {
-        isValid = await validateConversioZipFile({
+        isValid = await ValidatorService.validateConversioZipFile({
           fileBaseName: 'conversio-test-a',
           directoryToUpload: 'testUploadDirectory',
           _getFiles,
@@ -272,7 +271,7 @@ describe('campaign creatives zip file upload validators', () => {
       let isValid;
 
       try {
-        isValid = await validateConversioZipFile({
+        isValid = await ValidatorService.validateConversioZipFile({
           fileBaseName: 'conversio-test-a (1)',
           directoryToUpload: 'testUploadDirectory',
           _getFiles,
