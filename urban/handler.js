@@ -9,10 +9,11 @@ import { v1 as uuid } from 'uuid';
 
 import FsService from './modules/fs/fs.service.js';
 import CloudService from './modules/cloud/cloud.service.js';
+import ValidatorService from './modules/validator/validator.service.js';
 
 import FsConstants from './modules/fs/fs.constants.js';
 
-const ONE_HUNDRED_MEGABYTES = 100 * 1024 * 1024;
+import { ONE_HUNDRED_MEGABYTES } from './common/constants.js';
 
 const __dirname = '';
 
@@ -76,7 +77,7 @@ async function handler(req, res, next) {
     for (const file of filesInfo) {
       const { destinationDirectory: directoryToUpload, fileBaseName } = file;
 
-      await validateFile({ directoryToUpload, fileBaseName, exporter });
+      await ValidatorService.validateFile({ directoryToUpload, fileBaseName, exporter });
 
       s3UploadResults = await uploadDirectoryToS3({
         campaignId,
@@ -148,103 +149,6 @@ const extractFiles = async filesInfo => {
       throw new VError(error, `failed to extract ${filePath}`);
     }
   }
-};
-
-const validateFile = async ({ fileBaseName, directoryToUpload, exporter }) => {
-  switch (exporter) {
-    case 'gwd':
-      await validateGWDZipFile({ fileBaseName, directoryToUpload });
-      break;
-    case 'conversio':
-      await validateConversioZipFile({ fileBaseName, directoryToUpload });
-      break;
-    default:
-      await validateGWDZipFile({ fileBaseName, directoryToUpload });
-  }
-};
-
-export const validateGWDZipFile = async ({
-  fileBaseName,
-  directoryToUpload,
-  _getFiles = FsService.getFiles,
-  _readRootHtmlFile = FsService.readFileUTF8,
-} = {}) => {
-  const files = await _getFiles(path.resolve(__dirname, directoryToUpload));
-
-  const rootHtmlFile = _.find(files, file => _.includes(file, '.html'));
-
-  if (!rootHtmlFile) {
-    throw new VError('Zip file does not contain a root .html file');
-  }
-
-  const rootHtmlFileBaseName = _(rootHtmlFile)
-    .replace(`${FsConstants.EXTRACT_DIRECTORY}/${fileBaseName}/`, '')
-    .split('.html')[0]
-    .split('/')[0];
-
-  if (!_.includes(fileBaseName, rootHtmlFileBaseName)) {
-    throw new VError(
-      `Zip file name '${fileBaseName}' does not contain basename '${rootHtmlFileBaseName}'`
-    );
-  }
-
-  const rootHtmlString = _readRootHtmlFile(rootHtmlFile);
-
-  if (rootHtmlString.length < 1) {
-    throw new VError('Root .html file is missing content');
-  }
-
-  const containsGWDMeta = _.includes(
-    rootHtmlString,
-    'name="generator" content="Google Web Designer'
-  );
-
-  if (!containsGWDMeta) {
-    throw new VError('Root .html file does not contain Google Web Designer metadata');
-  }
-
-  const hasAssets = _.filter(files, file => _.includes(file, 'assets/')).length > 0;
-  const linksAssets = _.includes(rootHtmlString, 'src="assets/');
-
-  if (linksAssets && !hasAssets) {
-    throw new VError('Zip file is missing assets folder for linked assets');
-  }
-
-  return true;
-};
-
-export const validateConversioZipFile = async ({
-  fileBaseName,
-  directoryToUpload,
-  _getFiles = FsService.getFiles,
-  _readRootHtmlFile = FsService.readFileUTF8,
-} = {}) => {
-  const files = await _getFiles(path.resolve(__dirname, directoryToUpload));
-
-  const rootHtmlFile = _.find(files, file => _.includes(file, '.html'));
-
-  if (!rootHtmlFile) {
-    throw new VError('Zip file does not contain a root .html file');
-  }
-
-  const rootHtmlFileBaseName = _(rootHtmlFile)
-    .replace(`${FsConstants.EXTRACT_DIRECTORY}/${fileBaseName}/`, '')
-    .split('.html')[0]
-    .split('/')[0];
-
-  if (!_.includes(fileBaseName, rootHtmlFileBaseName)) {
-    throw new VError(
-      `Zip file name '${fileBaseName}' does not contain basename '${rootHtmlFileBaseName}'`
-    );
-  }
-
-  const rootHtmlString = _readRootHtmlFile(rootHtmlFile);
-
-  if (rootHtmlString.length < 1) {
-    throw new VError('Root .html file is missing content');
-  }
-
-  return true;
 };
 
 const uploadDirectoryToS3 = async ({
