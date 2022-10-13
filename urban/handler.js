@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config()
+
 import _ from 'lodash';
 
 import path from 'path';
@@ -11,10 +14,10 @@ const UPLOAD_DIRECTORY = '../../../../../tmp/rich-media-markup-uploads';
 const EXTRACT_DIRECTORY = '../../../../../tmp/rich-media-markup-extracted';
 const ONE_HUNDRED_MEGABYTES = 100 * 1024 * 1024;
 
-const S3_KEY = 's3.key';
-const S3_SECRET = 's3.secret';
-const S3_CREATIVES_BUCKET = 's3.creatives.bucket';
-const S3_ACCESS_CONTROL_LIST = 'public-read';
+const S3_KEY = process.env.S3_KEY;
+const S3_SECRET = process.env.S3_SECRET;
+const S3_CREATIVES_BUCKET = process.env.S3_CREATIVES_BUCKET;
+const S3_ACCESS_CONTROL_LIST = process.env.S3_ACCESS_CONTROL_LIST;
 const __dirname = '';
 const s3 = new AWS.S3({
   accessKeyId: S3_KEY,
