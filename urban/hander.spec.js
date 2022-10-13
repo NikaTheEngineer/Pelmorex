@@ -154,7 +154,7 @@ describe('campaign creatives zip file upload validators', () => {
       let isValid;
 
       try {
-        isValid = await validateConversioZipFile({
+        isValid = await validateGWDZipFile({
           fileBaseName: 'gwd-test-a (1)',
           directoryToUpload: 'testUploadDirectory',
           _getFiles,
