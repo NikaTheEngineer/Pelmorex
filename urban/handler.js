@@ -8,21 +8,15 @@ import { AWS, Storage } from './mock.js';
 import VError from 'verror';
 import mime from 'mime-types';
 import { v1 as uuid } from 'uuid';
+import S3Service from './modules/aws/s3/s3.service.js';
 
 const TEMP_DIRECTORY = '../../../../../tmp/';
 const UPLOAD_DIRECTORY = '../../../../../tmp/rich-media-markup-uploads';
 const EXTRACT_DIRECTORY = '../../../../../tmp/rich-media-markup-extracted';
 const ONE_HUNDRED_MEGABYTES = 100 * 1024 * 1024;
 
-const S3_KEY = process.env.S3_KEY;
-const S3_SECRET = process.env.S3_SECRET;
-const S3_CREATIVES_BUCKET = process.env.S3_CREATIVES_BUCKET;
-const S3_ACCESS_CONTROL_LIST = process.env.S3_ACCESS_CONTROL_LIST;
 const __dirname = '';
-const s3 = new AWS.S3({
-  accessKeyId: S3_KEY,
-  secretAccessKey: S3_SECRET,
-});
+
 const storage = new Storage();
 const GCS_CREATIVE_BUCKET_NAME = 'gcs.creatives.bucketName';
 
@@ -330,15 +324,11 @@ const uploadDirectoryToS3 = async ({
       Body = fs.readFileSync(filePath);
     }
 
-    const Bucket = S3_CREATIVES_BUCKET;
-    const ACL = S3_ACCESS_CONTROL_LIST;
-    const ContentType = mime.lookup(filePath) || 'application/octet-stream';
+    const ContentType = mime.lookup(filePath);
 
     const params = {
       Key,
       Body,
-      Bucket,
-      ACL,
       ContentType,
     };
 
@@ -350,7 +340,7 @@ const uploadDirectoryToS3 = async ({
           });
         }
       }
-      await uploadObjectToS3(params);
+      await S3Service.uploadObjectToCreativesBucket(params);
       uploadResults.push({
         Key,
       });
@@ -360,18 +350,6 @@ const uploadDirectoryToS3 = async ({
   }
 
   return uploadResults;
-};
-
-const uploadObjectToS3 = params => {
-  return new Promise((resolve, reject) => {
-    s3.putObject(params, (error, data) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(data);
-    });
-  });
 };
 
 const deleteFolderRecursively = filePath => {
