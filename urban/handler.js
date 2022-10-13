@@ -185,7 +185,7 @@ const validateFile = async ({ fileBaseName, directoryToUpload, exporter }) => {
 };
 
 export const validateGWDZipFile = async ({
-  // fileBaseName,
+  fileBaseName,
   directoryToUpload,
   _getFiles = getFiles,
   _readRootHtmlFile = readRootHtmlFile,
@@ -198,18 +198,16 @@ export const validateGWDZipFile = async ({
     throw new VError('Zip file does not contain a root .html file');
   }
 
-  /*
   const rootHtmlFileBaseName = _(rootHtmlFile)
-      .replace(`${EXTRACT_DIRECTORY}/${fileBaseName}/`, '')
-      .split('.html')[0]
-      .split('/')[0];
+    .replace(`${EXTRACT_DIRECTORY}/${fileBaseName}/`, '')
+    .split('.html')[0]
+    .split('/')[0];
 
   if (!_.includes(fileBaseName, rootHtmlFileBaseName)) {
-      throw new VError(
-          `Zip file name '${fileBaseName}' does not contain basename '${rootHtmlFileBaseName}'`
-      );
+    throw new VError(
+      `Zip file name '${fileBaseName}' does not contain basename '${rootHtmlFileBaseName}'`
+    );
   }
-  */
 
   const rootHtmlString = _readRootHtmlFile(rootHtmlFile);
 
