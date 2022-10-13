@@ -5,12 +5,10 @@ import _ from 'lodash';
 
 import path from 'path';
 import VError from 'verror';
-import mime from 'mime-types';
 import { v1 as uuid } from 'uuid';
 
-import S3Service from './modules/aws/s3/s3.service.js';
-import StorageService from './modules/gcs/storage/storage.service.js';
 import FsService from './modules/fs/fs.service.js';
+import CloudService from './modules/cloud/cloud.service.js';
 
 import FsConstants from './modules/fs/fs.constants.js';
 
@@ -249,17 +247,6 @@ export const validateConversioZipFile = async ({
   return true;
 };
 
-const getS3UploadKey = ({ filePath, directoryToUpload, campaignId, fileBaseName, uploadId }) => {
-  const s3DirectoryPath = `${campaignId}/${fileBaseName}_${uploadId}/`;
-  let s3FilePath = filePath.replace(`${directoryToUpload}/`, '');
-
-  if (_.split(s3FilePath, '/')[0] === fileBaseName) {
-    s3FilePath = s3FilePath.replace(`${fileBaseName}/`, '');
-  }
-
-  return `${s3DirectoryPath}${s3FilePath}`;
-};
-
 const uploadDirectoryToS3 = async ({
   campaignId,
   directoryToUpload,
@@ -273,7 +260,7 @@ const uploadDirectoryToS3 = async ({
   const uploadResults = [];
 
   for (const filePath of filesToUpload) {
-    const Key = getS3UploadKey({
+    const Key = CloudService.getKey({
       filePath,
       directoryToUpload,
       campaignId,
@@ -300,30 +287,16 @@ const uploadDirectoryToS3 = async ({
       Body = FsService.readFile(filePath);
     }
 
-    const ContentType = mime.lookup(filePath);
-
-    const params = {
+    await CloudService.uploadFile({
+      filePath,
+      uploadToGCS: flags.en_2127_upload_into_s3_and_gcs,
       Key,
       Body,
-      ContentType,
-    };
+    });
 
-    try {
-      if (flags.en_2127_upload_into_s3_and_gcs) {
-        if (process.env.GCS_UPLOAD_TO_CREATIVES) {
-          await StorageService.uploadObjectToCreativesBucket({
-            filePath,
-            destination: Key,
-          });
-        }
-      }
-      await S3Service.uploadObjectToCreativesBucket(params);
-      uploadResults.push({
-        Key,
-      });
-    } catch (error) {
-      throw new VError(error, `failed to upload ${filePath} to s3`);
-    }
+    uploadResults.push({
+      Key,
+    });
   }
 
   return uploadResults;
