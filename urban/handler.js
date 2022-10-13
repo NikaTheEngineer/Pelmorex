@@ -10,10 +10,10 @@ import { v1 as uuid } from 'uuid';
 
 import S3Service from './modules/aws/s3/s3.service.js';
 import StorageService from './modules/gcs/storage/storage.service.js';
+import FsService from './modules/fs/fs.service.js';
 
-const TEMP_DIRECTORY = '../../../../../tmp/';
-const UPLOAD_DIRECTORY = '../../../../../tmp/rich-media-markup-uploads';
-const EXTRACT_DIRECTORY = '../../../../../tmp/rich-media-markup-extracted';
+import FsConstants from './modules/fs/fs.constants.js';
+
 const ONE_HUNDRED_MEGABYTES = 100 * 1024 * 1024;
 
 const __dirname = '';
@@ -22,7 +22,7 @@ async function handler(req, res, next) {
   const { flags } = res.locals;
   const { id: campaignId } = res.locals.campaign;
 
-  persistTempFolders();
+  FsService.persistTempFolders();
 
   const form = new formidable.IncomingForm();
   const filesInfo = [];
@@ -32,7 +32,7 @@ async function handler(req, res, next) {
   form.maxFileSize = ONE_HUNDRED_MEGABYTES;
   form.keepExtensions = true;
   form.multiples = true;
-  form.uploadDir = UPLOAD_DIRECTORY;
+  form.uploadDir = FsConstants.UPLOAD_DIRECTORY;
 
   form.on('fileBegin', function (name, file) {
     const fileBaseName = path.basename(file.name, path.extname(file.name));
@@ -41,7 +41,7 @@ async function handler(req, res, next) {
       UPLOAD_DIRECTORY,
       `${fileBaseName}_${new Date().getTime()}${fileExtension}`
     );
-    const destinationDirectory = path.join(EXTRACT_DIRECTORY, fileBaseName);
+    const destinationDirectory = path.join(FsConstants.EXTRACT_DIRECTORY, fileBaseName);
 
     filesInfo.push({
       fileBaseName,
@@ -89,7 +89,7 @@ async function handler(req, res, next) {
         flags,
       });
 
-      removeTempFolders();
+      FsService.removeTempFolders();
     }
 
     const rootHtmlFile = _.find(s3UploadResults, ({ Key }) => {
@@ -133,20 +133,6 @@ const parseFilesFromForm = (form, req) => {
   });
 };
 
-const persistTempFolders = () => {
-  if (!fs.existsSync(TEMP_DIRECTORY)) {
-    fs.mkdirSync(TEMP_DIRECTORY);
-  }
-
-  if (!fs.existsSync(UPLOAD_DIRECTORY)) {
-    fs.mkdirSync(UPLOAD_DIRECTORY);
-  }
-
-  if (!fs.existsSync(EXTRACT_DIRECTORY)) {
-    fs.mkdirSync(EXTRACT_DIRECTORY);
-  }
-};
-
 const extractFiles = async filesInfo => {
   for (const file of filesInfo) {
     const { filePath, destinationDirectory } = file;
@@ -182,8 +168,8 @@ const validateFile = async ({ fileBaseName, directoryToUpload, exporter }) => {
 export const validateGWDZipFile = async ({
   fileBaseName,
   directoryToUpload,
-  _getFiles = getFiles,
-  _readRootHtmlFile = readRootHtmlFile,
+  _getFiles = FsService.getFiles,
+  _readRootHtmlFile = FsService.readFileUTF8,
 } = {}) => {
   const files = await _getFiles(path.resolve(__dirname, directoryToUpload));
 
@@ -194,7 +180,7 @@ export const validateGWDZipFile = async ({
   }
 
   const rootHtmlFileBaseName = _(rootHtmlFile)
-    .replace(`${EXTRACT_DIRECTORY}/${fileBaseName}/`, '')
+    .replace(`${FsConstants.EXTRACT_DIRECTORY}/${fileBaseName}/`, '')
     .split('.html')[0]
     .split('/')[0];
 
@@ -232,8 +218,8 @@ export const validateGWDZipFile = async ({
 export const validateConversioZipFile = async ({
   fileBaseName,
   directoryToUpload,
-  _getFiles = getFiles,
-  _readRootHtmlFile = readRootHtmlFile,
+  _getFiles = FsService.getFiles,
+  _readRootHtmlFile = FsService.readFileUTF8,
 } = {}) => {
   const files = await _getFiles(path.resolve(__dirname, directoryToUpload));
 
@@ -244,7 +230,7 @@ export const validateConversioZipFile = async ({
   }
 
   const rootHtmlFileBaseName = _(rootHtmlFile)
-    .replace(`${EXTRACT_DIRECTORY}/${fileBaseName}/`, '')
+    .replace(`${FsConstants.EXTRACT_DIRECTORY}/${fileBaseName}/`, '')
     .split('.html')[0]
     .split('/')[0];
 
@@ -261,14 +247,6 @@ export const validateConversioZipFile = async ({
   }
 
   return true;
-};
-
-const getFiles = directoryPath => {
-  return fs.existsSync(directoryPath) ? readdir(directoryPath) : [];
-};
-
-const readRootHtmlFile = rootHtmlFile => {
-  return fs.readFileSync(rootHtmlFile, 'utf8');
 };
 
 const getS3UploadKey = ({ filePath, directoryToUpload, campaignId, fileBaseName, uploadId }) => {
@@ -290,7 +268,7 @@ const uploadDirectoryToS3 = async ({
   exporter,
   flags,
 }) => {
-  const filesToUpload = await getFiles(path.resolve(__dirname, directoryToUpload));
+  const filesToUpload = await FsService.getFiles(path.resolve(__dirname, directoryToUpload));
 
   const uploadResults = [];
 
@@ -306,7 +284,7 @@ const uploadDirectoryToS3 = async ({
     let Body;
 
     if (_.includes(filePath, '.html')) {
-      Body = fs.readFileSync(filePath, 'utf8');
+      Body = FsService.readFileUTF8(filePath);
 
       switch (exporter) {
         case 'gwd':
@@ -319,7 +297,7 @@ const uploadDirectoryToS3 = async ({
           Body = processGWDClickthroughUrls(Body);
       }
     } else {
-      Body = fs.readFileSync(filePath);
+      Body = FsService.readFile(filePath);
     }
 
     const ContentType = mime.lookup(filePath);
@@ -349,26 +327,6 @@ const uploadDirectoryToS3 = async ({
   }
 
   return uploadResults;
-};
-
-const deleteFolderRecursively = filePath => {
-  if (fs.existsSync(filePath)) {
-    fs.readdirSync(filePath).forEach(file => {
-      const currentPath = path.join(filePath, file);
-
-      if (fs.lstatSync(currentPath).isDirectory()) {
-        deleteFolderRecursively(currentPath);
-      } else {
-        fs.unlinkSync(currentPath);
-      }
-    });
-    fs.rmdirSync(filePath);
-  }
-};
-
-const removeTempFolders = () => {
-  deleteFolderRecursively(UPLOAD_DIRECTORY);
-  deleteFolderRecursively(EXTRACT_DIRECTORY);
 };
 
 export const processGWDClickthroughUrls = body => {
