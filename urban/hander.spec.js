@@ -2,11 +2,8 @@ import { assert, expect } from 'chai';
 import _ from 'lodash';
 import sinon from 'sinon';
 
-import {
-  processGWDClickthroughUrls,
-  processConversioClickthroughUrls,
-} from './handler.js';
 import ValidatorService from './modules/validator/validator.service.js';
+import ProcessorService from './modules/processor/processor.service.js';
 
 describe('campaign creatives zip file upload validators', () => {
   describe('validateGWDZipFile', () => {
@@ -301,7 +298,7 @@ describe('campaign creatives zip file upload validators', () => {
                 <script type="text/javascript" gwd-events="handlers">
                     gwd.auto_Btn_Exit_1Action = function(event) {
                         // GWD Predefined Function
-                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + 'http://www.google.com/', true, true);
+                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + "http://www.google.com/", true, true);
                     };
                 </script>
             `;
@@ -327,25 +324,25 @@ describe('campaign creatives zip file upload validators', () => {
       const processedMultiUrlBody = `
                 <script type="text/javascript" gwd-events="handlers">
                     gwd.auto_Btn_Exit_1Action = function(event) {
-                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + 'https://www.google.com/', true, true);
+                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + "https://www.google.com/", true, true);
                     };
                     gwd.auto_Btn_Exit_2Action = function(event) {
-                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + 'https://www.google.ca', true, true);
+                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + "https://www.google.ca", true, true);
                     };
                     gwd.auto_Btn_Exit_3Action = function(event) {
-                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + 'https://www.google.co.uk', true, true);
+                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + "https://www.google.co.uk", true, true);
                     };
                     gwd.auto_Btn_Exit_4Action = function(event) {
-                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + 'https://google.org', true, true);
+                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + "https://google.org", true, true);
                     };
                     gwd.auto_Btn_Exit_5Action = function(event) {
-                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + 'https://google.org', true, true);
+                        gwd.actions.gwdGoogleAd.exit('gwd-ad', 'Btn-Exit', decodeURIComponent(window.location.href.split('?adserver=')[1]) + "https://google.org", true, true);
                     };
                 </script>
             `;
 
-      expect(processGWDClickthroughUrls(rawSingleUrlBody)).to.eql(processedSingleUrlBody);
-      expect(processGWDClickthroughUrls(rawMultiUrlBody)).to.eql(processedMultiUrlBody);
+      expect(ProcessorService.processGWDClickthroughUrls(rawSingleUrlBody)).to.eql(processedSingleUrlBody);
+      expect(ProcessorService.processGWDClickthroughUrls(rawMultiUrlBody)).to.eql(processedMultiUrlBody);
     });
   });
 
@@ -383,7 +380,7 @@ describe('campaign creatives zip file upload validators', () => {
             `;
 
       expect(
-        processConversioClickthroughUrls(`
+        ProcessorService.processConversioClickthroughUrls(`
                 <script>
                     var clickTag = "http://plancherspayless.com/fr/"
                 </script>
@@ -391,7 +388,7 @@ describe('campaign creatives zip file upload validators', () => {
       ).to.eql(expectedOutputWithVar);
 
       expect(
-        processConversioClickthroughUrls(`
+        ProcessorService.processConversioClickthroughUrls(`
                 <script>
                     var clickTag = 'http://plancherspayless.com/fr/'
                 </script>
@@ -399,7 +396,7 @@ describe('campaign creatives zip file upload validators', () => {
       ).to.eql(expectedOutputWithVar);
 
       expect(
-        processConversioClickthroughUrls(`
+        ProcessorService.processConversioClickthroughUrls(`
                 <script>
                     let clickTag = "http://plancherspayless.com/fr/"
                 </script>
@@ -407,7 +404,7 @@ describe('campaign creatives zip file upload validators', () => {
       ).to.eql(expectedOutputWithLet);
 
       expect(
-        processConversioClickthroughUrls(`
+        ProcessorService.processConversioClickthroughUrls(`
                 <script>
                     const clickTag = "http://plancherspayless.com/fr/"
                 </script>
@@ -415,7 +412,7 @@ describe('campaign creatives zip file upload validators', () => {
       ).to.eql(expectedOutputWithConst);
 
       expect(
-        processConversioClickthroughUrls(`
+        ProcessorService.processConversioClickthroughUrls(`
                 <script>
                     var ClickTAG = "http://plancherspayless.com/fr/"
                 </script>
@@ -423,7 +420,7 @@ describe('campaign creatives zip file upload validators', () => {
       ).to.eql(expectedOutputWithCase);
 
       expect(
-        processConversioClickthroughUrls(`
+        ProcessorService.processConversioClickthroughUrls(`
                 <script>
                     var clickTag  =  "http://plancherspayless.com/fr/"
                 </script>
@@ -431,7 +428,7 @@ describe('campaign creatives zip file upload validators', () => {
       ).to.eql(expectedOutputWithSpace);
 
       expect(
-        processConversioClickthroughUrls(`
+        ProcessorService.processConversioClickthroughUrls(`
                 <script>
                     var clickTag="http://plancherspayless.com/fr/"
                 </script>
