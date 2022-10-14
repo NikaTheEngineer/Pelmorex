@@ -18,6 +18,90 @@ import { ONE_HUNDRED_MEGABYTES } from './common/constants.js';
 
 const __dirname = '';
 
+const parseFilesFromForm = (form, req) => {
+  return new Promise((resolve, reject) => {
+    form.parse(req, (error, fields, files) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      const schema = createFormFieldSchema();
+      const { error: validationError } = schema.validate(fields);
+
+      if (validationError) {
+        reject(validationError);
+        return;
+      }
+
+      resolve({ fields, files });
+    });
+  });
+};
+
+const extractFiles = async filesInfo => {
+  for (const file of filesInfo) {
+    const { filePath, destinationDirectory } = file;
+    try {
+      await new Promise((resolve, reject) => {
+        extract(filePath, { dir: `${destinationDirectory}` }, error => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        });
+      });
+    } catch (error) {
+      throw new VError(error, `failed to extract ${filePath}`);
+    }
+  }
+};
+
+const getProcessedBody = (filePath, exporter) => {
+  return _.includes(filePath, '.html')
+    ? ProcessorService.processClickthroughUrls(FsService.readFileUTF8(filePath), exporter)
+    : Body = FsService.readFile(filePath);
+}
+
+const processAndUpload = async ({
+  campaignId,
+  directoryToUpload,
+  fileBaseName,
+  uploadId,
+  exporter,
+  flags,
+}) => {
+  const filesToUpload = await FsService.getFiles(path.resolve(__dirname, directoryToUpload));
+
+  const uploadResults = [];
+
+  for (const filePath of filesToUpload) {
+    const Key = CloudService.getKey({
+      filePath,
+      directoryToUpload,
+      campaignId,
+      fileBaseName,
+      uploadId,
+    });
+
+    const Body = getProcessedBody(filePath, exporter);
+
+    await CloudService.uploadFile({
+      filePath,
+      uploadToGCS: flags.en_2127_upload_into_s3_and_gcs,
+      Key,
+      Body,
+    });
+
+    uploadResults.push({
+      Key,
+    });
+  }
+
+  return uploadResults;
+};
+
 async function handler(req, res, next) {
   const { flags } = res.locals;
   const { id: campaignId } = res.locals.campaign;
@@ -38,7 +122,7 @@ async function handler(req, res, next) {
     const fileBaseName = path.basename(file.name, path.extname(file.name));
     const fileExtension = path.extname(file.name);
     const filePath = path.join(
-      UPLOAD_DIRECTORY,
+      FsConstants.UPLOAD_DIRECTORY,
       `${fileBaseName}_${new Date().getTime()}${fileExtension}`
     );
     const destinationDirectory = path.join(FsConstants.EXTRACT_DIRECTORY, fileBaseName);
@@ -80,7 +164,7 @@ async function handler(req, res, next) {
 
       await ValidatorService.validateFile({ directoryToUpload, fileBaseName, exporter });
 
-      s3UploadResults = await uploadDirectoryToS3({
+      s3UploadResults = await processAndUpload({
         campaignId,
         directoryToUpload,
         fileBaseName,
@@ -111,91 +195,5 @@ async function handler(req, res, next) {
     return next(ServerError.unknownError(error));
   }
 }
-
-const parseFilesFromForm = (form, req) => {
-  return new Promise((resolve, reject) => {
-    form.parse(req, (error, fields, files) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      const schema = createFormFieldSchema();
-      const { error: validationError } = schema.validate(fields);
-
-      if (validationError) {
-        reject(validationError);
-        return;
-      }
-
-      resolve({ fields, files });
-    });
-  });
-};
-
-const extractFiles = async filesInfo => {
-  for (const file of filesInfo) {
-    const { filePath, destinationDirectory } = file;
-    try {
-      await new Promise((resolve, reject) => {
-        extract(filePath, { dir: `${destinationDirectory}` }, error => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        });
-      });
-    } catch (error) {
-      throw new VError(error, `failed to extract ${filePath}`);
-    }
-  }
-};
-
-const uploadDirectoryToS3 = async ({
-  campaignId,
-  directoryToUpload,
-  fileBaseName,
-  uploadId,
-  exporter,
-  flags,
-}) => {
-  const filesToUpload = await FsService.getFiles(path.resolve(__dirname, directoryToUpload));
-
-  const uploadResults = [];
-
-  for (const filePath of filesToUpload) {
-    const Key = CloudService.getKey({
-      filePath,
-      directoryToUpload,
-      campaignId,
-      fileBaseName,
-      uploadId,
-    });
-
-    let Body;
-
-    if (_.includes(filePath, '.html')) {
-      Body = FsService.readFileUTF8(filePath);
-
-      Body = ProcessorService.processClickthroughUrls(Body, exporter);
-    } else {
-      Body = FsService.readFile(filePath);
-    }
-
-    await CloudService.uploadFile({
-      filePath,
-      uploadToGCS: flags.en_2127_upload_into_s3_and_gcs,
-      Key,
-      Body,
-    });
-
-    uploadResults.push({
-      Key,
-    });
-  }
-
-  return uploadResults;
-};
 
 export default handler;
