@@ -10,6 +10,7 @@ import { v1 as uuid } from 'uuid';
 import FsService from './modules/fs/fs.service.js';
 import CloudService from './modules/cloud/cloud.service.js';
 import ValidatorService from './modules/validator/validator.service.js';
+import ProcessorService from './modules/processor/processor.service.js';
 
 import FsConstants from './modules/fs/fs.constants.js';
 
@@ -177,16 +178,7 @@ const uploadDirectoryToS3 = async ({
     if (_.includes(filePath, '.html')) {
       Body = FsService.readFileUTF8(filePath);
 
-      switch (exporter) {
-        case 'gwd':
-          Body = processGWDClickthroughUrls(Body);
-          break;
-        case 'conversio':
-          Body = processConversioClickthroughUrls(Body);
-          break;
-        default:
-          Body = processGWDClickthroughUrls(Body);
-      }
+      Body = ProcessorService.processClickthroughUrls(Body, exporter);
     } else {
       Body = FsService.readFile(filePath);
     }
@@ -204,50 +196,6 @@ const uploadDirectoryToS3 = async ({
   }
 
   return uploadResults;
-};
-
-export const processGWDClickthroughUrls = body => {
-  let output = body;
-
-  const exitEventRegex = /.exit\([^\)]+\)/gm;
-  const urlRegex = /(["']https?:\/\/[^\s]+["'],)/g;
-
-  _.each(body.match(exitEventRegex), params => {
-    const formattedParams = params.replace(urlRegex, url => {
-      const trimmedUrl = _.chain(url)
-        .trimStart(`'`)
-        .trimEnd(`',`)
-        .trimStart(`"`)
-        .trimEnd(`",`)
-        .value();
-      return `decodeURIComponent(window.location.href.split('?adserver=')[1]) + '${trimmedUrl}',`;
-    });
-
-    output = output.replace(params, formattedParams);
-  });
-
-  return output;
-};
-
-export const processConversioClickthroughUrls = body => {
-  let output = body;
-
-  const clickTagRegex = /clickTag\s*=\s*["'](\S*)["']/gi;
-  const urlRegex = /(["']https?:\/\/[^\s]+["'])/g;
-
-  _.each(body.match(clickTagRegex), params => {
-    const formattedParams = params.replace(urlRegex, url => {
-      const trimmedUrl = _.chain(url)
-        .trim(`'`)
-        .trim(`"`)
-        .value();
-      return `decodeURIComponent(window.location.href.split('?adserver=')[1]) + "${trimmedUrl}"`;
-    });
-
-    output = output.replace(params, formattedParams);
-  });
-
-  return output;
 };
 
 export default handler;
