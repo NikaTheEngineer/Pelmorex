@@ -1,0 +1,141 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "jsx": true,
+    "useJSXTextNode": true,
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "modules": true
+    }
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "rules": {
+    "import/extensions": [
+      0,
+      "never",
+      {
+        "ignorePackages": true
+      }
+    ],
+    "spaced-comment": [
+      "error",
+      "always"
+    ],
+    "eqeqeq": [
+      "error",
+      "always",
+      {
+        "null": "ignore"
+      }
+    ],
+    "no-underscore-dangle": [
+      "error",
+      {
+        "allow": [
+          "_id"
+        ]
+      }
+    ],
+    "camelcase": [
+      "error",
+      {
+        "allow": [
+          "oauth2_v2",
+          "user_id"
+        ],
+        "properties": "never"
+      }
+    ],
+    "func-names": [
+      "error",
+      "never"
+    ],
+    "arrow-parens": [
+      "error",
+      "as-needed"
+    ],
+    "@typescript-eslint/member-delimiter-style": "warn",
+    "semi": "off",
+    "@typescript-eslint/semi": [
+      "error",
+      "always"
+    ],
+    "no-extra-semi": 0,
+    "import/no-unresolved": "off",
+    "import/prefer-default-export": 0,
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "**/*.test.ts",
+          "**/*.spec.ts"
+        ]
+      }
+    ],
+    "no-unused-vars": "off",
+    "dot-notation": "off",
+    "class-methods-use-this": "off",
+    "comma-dangle": [
+      "error",
+      {
+        "arrays": "only-multiline",
+        "objects": "only-multiline",
+        "imports": "only-multiline",
+        "exports": "only-multiline",
+        "functions": "ignore"
+      }
+    ],
+    "handle-callback-err": "error",
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+    "react/jsx-indent": [
+      "error",
+      2
+    ],
+    "react/jsx-indent-props": [
+      "error",
+      2
+    ],
+    "react/jsx-tag-spacing": [
+      "error",
+      {
+        "closingSlash": "never",
+        "beforeSelfClosing": "always",
+        "afterOpening": "never",
+        "beforeClosing": "never"
+      }
+    ],
+    "react/react-in-jsx-scope": "off",
+    "no-param-reassign": "off"
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.ts",
+        "**/*.tsx"
+      ],
+      "parser": "@typescript-eslint/parser",
+      "rules": {
+        "no-undef": "off"
+      }
+    }
+  ],
+  "extends": [
+    "eslint:recommended",
+    "airbnb-base",
+    "plugin:react/recommended"
+  ],
+  "plugins": [
+    "@typescript-eslint",
+    "simple-import-sort"
+  ],
+  "settings": {}
+}
