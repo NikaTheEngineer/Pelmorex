@@ -12,12 +12,12 @@ const formatUrl = (url) => {
   return `decodeURIComponent(window.location.href.split('?adserver=')[1]) + "${trimmedUrl}"`;
 };
 
-const processClickthroughUrls = (body, urlRegex, tagOrEventRegex, GWD = false) => {
+const processClickthroughUrls = (body, urlRegex, tagOrEventRegex, charAfterUrl) => {
   let output = body;
 
   Lodash.each(body.match(tagOrEventRegex), params => {
     const formattedParams = params.replace(urlRegex, (url) => {
-      return GWD ? formatUrl(url.split(',')[0]) + ',' : formatUrl(url);
+      return charAfterUrl ? formatUrl(url.split(charAfterUrl)[0]) + charAfterUrl : formatUrl(url);
     });
 
     output = output.replace(params, formattedParams);
@@ -30,7 +30,7 @@ const processGWDClickthroughUrls = body => {
   const exitEventRegex = /.exit\([^\)]+\)/gm;
   const urlRegex = /(["']https?:\/\/[^\s]+["'],)/g;
 
-  return processClickthroughUrls(body, urlRegex, exitEventRegex, true);
+  return processClickthroughUrls(body, urlRegex, exitEventRegex, ',');
 };
 
 const processConversioClickthroughUrls = body => {
@@ -40,10 +40,19 @@ const processConversioClickthroughUrls = body => {
   return processClickthroughUrls(body, urlRegex, clickTagRegex);
 };
 
+const processNewClickthroughUrls = body => {
+  const clickTagRegex = /clickTag\s*=\s*["'](\S*)["']/gi;
+  const urlRegex = /(["']https?:\/\/[^\s]+["'])/g;
+
+  return processClickthroughUrls(body, urlRegex, clickTagRegex, ';');
+};
+
 const ProcessorService = {
   processGWDClickthroughUrls,
 
   processConversioClickthroughUrls,
+
+  processNewClickthroughUrls,
 
   processClickthroughUrls: (body, exporter) => {
     switch (exporter) {
