@@ -52,9 +52,25 @@ const validateGWD = ({
   }
 }
 
+const validateSizeMeta = ({ rootHtmlString }) => {
+  const containsSizeMeta = Loadash.includes(rootHtmlString, 'name="ad.size"');
+
+  if (!containsSizeMeta) {
+    throw new VError('Root .html file does not contain ad size meta tag');
+  }
+
+  const containsValidContent = rootHtmlString.match(/content="width=\[\d+\],height=\[\d+\]"/);
+
+  if (!containsValidContent) {
+    throw new VError('Root .html file does not contain valid ad size meta tag');
+  }
+
+  return true;
+};
+
 const validateHTML = async ({
   fileBaseName, directoryToUpload, _getFiles, _readRootHtmlFile
-}, GWD = false) => {
+}, extra) => {
   const files = await _getFiles(path.resolve(__dirname, directoryToUpload));
 
   const rootHtmlFile = getValidHTMLFile(files);
@@ -67,10 +83,7 @@ const validateHTML = async ({
     throw new VError('Root .html file is missing content');
   }
 
-  GWD && validateGWD({
-    rootHtmlString,
-    files
-  });
+  extra && extra({ rootHtmlString, files });
 
   return true;
 }
@@ -86,7 +99,7 @@ const validateGWDZipFile = async ({
     directoryToUpload,
     _getFiles,
     _readRootHtmlFile
-  }, true);
+  }, validateGWD);
 };
 
 const validateConversioZipFile = async ({
@@ -100,10 +113,23 @@ const validateConversioZipFile = async ({
   });
 }
 
+const validateAdSizeZipFile = async ({
+  fileBaseName,
+  directoryToUpload,
+  _getFiles = FsService.getFiles,
+  _readRootHtmlFile = FsService.readFileUTF8,
+} = {}) => {
+  return validateHTML({
+    fileBaseName, directoryToUpload, _getFiles, _readRootHtmlFile
+  }, validateSizeMeta);
+}
+
 const ValidatorService = {
   validateGWDZipFile,
 
   validateConversioZipFile,
+
+  validateAdSizeZipFile,
 
   validateFile: async ({ fileBaseName, directoryToUpload, exporter }) => {
     switch (exporter) {
