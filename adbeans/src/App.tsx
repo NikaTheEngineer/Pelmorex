@@ -3,6 +3,7 @@ import { Fragment } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import Header from './components/Header/Header';
+import About from './modules/About/About';
 import List from './modules/List/List';
 
 const App = () => (
@@ -10,11 +11,7 @@ const App = () => (
     <Header />
     <Routes>
       <Route path="/list" element={<List />} />
-      <Route path="/about" element={
-        <Box>
-          About Page
-        </Box>
-      } />
+      <Route path="/about" element={<About />} />
       <Route path="/*" element={<Navigate to="/list" />} />
     </Routes>
   </Fragment>
