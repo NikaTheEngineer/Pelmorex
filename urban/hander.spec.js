@@ -2,6 +2,7 @@ import _ from 'lodash';
 
 import GWDValidatorTests from './tests/gwd/validator.spec.js';
 import ConversioValidatorTests from './tests/conversio/validator.test.js';
+import SizeValidatorTests from './tests/size/validator.test.js';
 
 import GWDProcessorTests from './tests/gwd/processor.test.js';
 import ConversioProcessorTests from './tests/conversio/processor.test.js';
@@ -37,6 +38,20 @@ describe('campaign creatives zip file upload validators', () => {
     it('should reject zip file where root html file is missing content', ConversioValidatorTests.shouldRejectMissingContent);
 
     it('should reject zip file where root html file base name is not in zip file base name', ConversioValidatorTests.shouldRejectRootFileameNotInZipFilename);
+  });
+
+  describe('validateAdSize', () => {
+    it('calls correct dependencies for html with size tag zip upload', SizeValidatorTests.callsCorrectDependencies);
+
+    it('should accept valid html with size tag zip files', SizeValidatorTests.shouldAcceptValidFile);
+
+    it('should accept valid html with size tag zip files with parens in file name', SizeValidatorTests.shouldAcceptParensInFilename);
+
+    it('should reject zip file with missing root html file', SizeValidatorTests.shouldRejectMissingRootFile);
+
+    it('should reject zip file where root html file is missing content', SizeValidatorTests.shouldRejectMissingContent);
+
+    it('should reject zip file where root html file does not contain ad.size metadata', SizeValidatorTests.shouldRejectMissingMetadata);
   });
 
   describe('processGWDClickthroughUrls', () => {
