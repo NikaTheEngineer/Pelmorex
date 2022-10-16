@@ -1,8 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
 
+import listReducer from './modules/List/list.slice';
+
 const store = configureStore({
   reducer: {
-
+    list: listReducer,
   },
   devTools: true,
 });
