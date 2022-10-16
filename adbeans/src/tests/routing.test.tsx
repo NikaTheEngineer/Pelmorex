@@ -3,9 +3,11 @@ import '@testing-library/jest-dom/extend-expect';
 import { screen } from '@testing-library/react';
 import ReactDOM from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
+import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 
 import App from '../App';
+import store from '../store';
 
 describe('Routing tests', () => {
   let container: HTMLElement;
@@ -17,7 +19,9 @@ describe('Routing tests', () => {
     act(() => {
       ReactDOM.createRoot(container).render(
         <BrowserRouter>
-          <App />
+          <Provider store={store}>
+            <App />
+          </Provider>
         </BrowserRouter>
       );
     });
