@@ -6,6 +6,7 @@ import SizeValidatorTests from './tests/size/validator.test.js';
 
 import GWDProcessorTests from './tests/gwd/processor.test.js';
 import ConversioProcessorTests from './tests/conversio/processor.test.js';
+import NewProcessorTests from './tests/new/processor.test.js';
 
 describe('campaign creatives zip file upload validators', () => {
   describe('validateGWDZipFile', () => {
@@ -60,5 +61,9 @@ describe('campaign creatives zip file upload validators', () => {
 
   describe('processConversioClickthroughUrls', () => {
     it('should process all clickthrough urls with a redirect macro', ConversioProcessorTests.shouldProcessAllUrlsWithMacro);
+  });
+
+  describe('processNewClickthroughUrls', () => {
+    it('should process all clickthrough urls with a redirect macro', NewProcessorTests.shouldProcessAllUrlsWithMacro);
   });
 });
