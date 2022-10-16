@@ -1,13 +1,9 @@
-import React from 'react';
+import { Box } from '@mui/material';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        Zoo App
-      </header>
-    </div>
-  );
-}
+const App = () => (
+  <Box>
+    Zoo App
+  </Box>
+);
 
 export default App;
